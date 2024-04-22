@@ -55,7 +55,7 @@ def get_news_list():
                 'title': title,
                 'date_time': date_time_text,
                 'importance': importance,
-                'valuta': valuta,
+                'currency': valuta,
             })
             prev_date_time = date_time_text
     return result
@@ -70,7 +70,7 @@ def get_news(currency: Optional[str] = Query(None),
         currencies = currency.split('-')
         all_news = [news
                     for news in all_news
-                    if any(c.lower() in news['valuta'].lower()
+                    if any(c.lower() in news['currency'].lower()
                            for c in currencies)]
 
     if importance:
