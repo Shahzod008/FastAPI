@@ -37,8 +37,8 @@
 
 - Получить все Forex новости. `http://localhost:8000/`
 - Параметры фильтрации:
-    - `currency`: Фильтровать новости по валюте. Например `https://localhost:8000/?currency=USD` или `https://localhost:8000/?currency=USD-EUR` 
-    - `importance`: Фильтровать новости по уровню важности. Пример: `https://localhost:8000/?importance=0`
+    - `currency`: Фильтровать новости по валюте. Пример `https://localhost:8000/?currency=USD` или `https://localhost:8000/?currency=USD-EUR` 
+    - `importance`: Фильтровать новости по уровню важности. Пример: `https://localhost:8000/?importance=0` или `https://localhost:8000/?importance=0-1`
 
 ## Автор
 [Shahzod](https://github.com/Shahzod008)
