@@ -31,11 +31,6 @@ HEADERS = {
 
 
 
-
-
-
-
-
 async def get_importance(row):
     if row.find(class_='icon icon--ff-impact-red'):
         return "Red"
