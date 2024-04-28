@@ -13,24 +13,6 @@ HEADERS = {
                   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 async def get_importance(row):
     if row.find(class_='icon icon--ff-impact-red'):
         return "Red"
