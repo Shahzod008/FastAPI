@@ -3,9 +3,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from typing import Optional
 import uvicorn
-import logging
 import httpx
-import time
 
 app = FastAPI()
 
@@ -76,27 +74,10 @@ async def get_news_list():
             print(e3)
             return "Что то пошло не так"
 
-# Создаем логгер
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# Создаем обработчик для вывода сообщений в консоль
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-# Создаем форматтер для определения формата вывода
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
-
-# Добавляем обработчик к логгеру
-logger.addHandler(console_handler)
-
-
 @app.get("/")
 async def get_news(currency: Optional[str] = Query(None),
                    importance: Optional[str] = Query(None)):
 
-    start_time = time.time()
     if 'news' in cache and 'timestamp' in cache and (cur - cache['timestamp']).seconds < 1800:
         all_news = cache['news']
     else:
@@ -127,11 +108,6 @@ async def get_news(currency: Optional[str] = Query(None),
         filtered_news = [news
                          for news in filtered_news
                          if news['Важность'] in selected_levels]
-
-    end_time = time.time()
-    processing_time = end_time - start_time
-
-    logger.info(f"Request processed in {processing_time:.8f} seconds")
 
     return filtered_news
 
