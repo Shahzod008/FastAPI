@@ -13,6 +13,7 @@ HEADERS = {
                   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
 }
 
+
 async def get_importance(row):
     if row.find(class_='icon icon--ff-impact-red'):
         return "Red"
@@ -58,11 +59,11 @@ async def get_news_list():
                 valuta = currency_element.get_text(strip=True) if currency_element else None
 
                 importance = await get_importance(row)
-                # cur = datetime.now().day
-                #
-                # numbers = [int(num) for num in date_text if num.isdigit()]
-                # if numbers and int(''.join(map(str, numbers))) == cur:
-                result.append({
+                cur = datetime.now().day
+
+                numbers = [int(num) for num in date_text if num.isdigit()]
+                if numbers and int(''.join(map(str, numbers))) == cur:
+                    result.append({
                             'Заголовок': title,
                             'Время': date_time_text,
                             'Дата': date_text,
