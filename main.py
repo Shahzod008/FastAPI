@@ -92,8 +92,7 @@ async def get_news(currency: Optional[str] = Query(None),
         importance_levels = ["Red",
                              "Orange",
                              "Yellow",
-                             "Grey"
-                             ]
+                             "Grey"]
 
         selected_levels = [
             importance_levels[int(idx)]
