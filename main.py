@@ -74,6 +74,7 @@ async def get_news_list():
             print(e3)
             return "Что то пошло не так"
 
+
 @app.get("/")
 async def get_news(currency: Optional[str] = Query(None),
                    importance: Optional[str] = Query(None)):
@@ -114,12 +115,3 @@ async def get_news(currency: Optional[str] = Query(None),
 
 if __name__ == "__main__":
     uvicorn.run(app="main:app", reload=True)
-
-
-
-
-
-
-
-
-
