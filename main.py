@@ -25,6 +25,20 @@ def get_event_importance(row):
         return "Grey"
 
 
+def data_new(date_text):
+    index = next((i for i, c in enumerate(date_text) if c.isupper()), None)
+    if index is not None:
+        index = next((i for i, c in enumerate(date_text[index + 1:]) if c.isupper()), None)
+        if index is not None:
+            new_data = date_text[index + 1:]
+        else:
+            new_data = date_text
+    else:
+        new_data = date_text
+
+    return new_data
+
+
 async def get_news_list():
     async with httpx.AsyncClient() as client:
         try:
@@ -32,6 +46,7 @@ async def get_news_list():
             soup = BeautifulSoup(response.content, features='html.parser')
             news_rows = soup.find_all(class_='calendar__row')
             result = []
+            cur = datetime.now()
             prev_date_time = None
             prev_date = None
             if news_rows:
@@ -59,14 +74,11 @@ async def get_news_list():
                     importance = get_event_importance(row)
 
                     numbers = [int(num) for num in date_text if num.isdigit()]
-                    cur = datetime.now()
                     if numbers and int(''.join(map(str, numbers))) == cur.day:
-                        d_m_y = datetime.today()
-                        data_day_moth = d_m_y.strftime("%d %B %Y")
                         result.append({
                             'Заголовок': title,
                             'Время': date_time_text,
-                            'Дата': data_day_moth,
+                            'Дата': data_new(date_text),
                             'Важность': importance,
                             'Валюта': valuta,
                         })
