@@ -14,7 +14,7 @@ HEADERS = {
 cache = {}
 
 
-async def get_event_importance(row):
+def get_event_importance(row):
     if row.find(class_='icon icon--ff-impact-red'):
         return "Red"
     elif row.find(class_='icon icon--ff-impact-yel'):
@@ -56,7 +56,7 @@ async def get_news_list():
                     currency_element = row.find(class_='calendar__cell calendar__currency')
                     valuta = currency_element.get_text(strip=True) if currency_element else None
 
-                    importance = await get_event_importance(row)
+                    importance = get_event_importance(row)
 
                     numbers = [int(num) for num in date_text if num.isdigit()]
                     cur = datetime.now()
