@@ -25,7 +25,7 @@ def get_event_importance(row: Tag) -> str:
         return "Grey"
 
 
-def data_new(date_text) -> str:
+def data_new(date_text: str) -> str:
     index = next((i for i, c in enumerate(date_text) if c.isupper()), None)
     if index is not None:
         index = next((i for i, c in enumerate(date_text[index + 1:]) if c.isupper()), None)
