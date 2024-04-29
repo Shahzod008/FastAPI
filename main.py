@@ -6,7 +6,6 @@ import uvicorn
 import httpx
 
 app = FastAPI()
-
 FOREX_FACTORY_URL = "https://www.forexfactory.com/calendar"
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
