@@ -5,16 +5,6 @@ from typing import Optional
 import uvicorn
 import httpx
 
-app = FastAPI()
-FOREX_FACTORY_URL = "https://www.forexfactory.com/calendar"
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-}
-cache = {}
-cur = datetime.now()
-
-
 async def get_event_importance(row):
     if row.find(class_='icon icon--ff-impact-red'):
         return "Red"
