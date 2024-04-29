@@ -1,0 +1,255 @@
+Index: .idea/FastAPI.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/FastAPI.iml b/.idea/FastAPI.iml
+new file mode 100644
+--- /dev/null	(date 1714241872692)
++++ b/.idea/FastAPI.iml	(date 1714241872692)
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="PYTHON_MODULE" version="4">
++  <component name="NewModuleRootManager">
++    <content url="file://$MODULE_DIR$">
++      <excludeFolder url="file://$MODULE_DIR$/.venv" />
++    </content>
++    <orderEntry type="inheritedJdk" />
++    <orderEntry type="sourceFolder" forTests="false" />
++  </component>
++  <component name="PyDocumentationSettings">
++    <option name="format" value="PLAIN" />
++    <option name="myDocStringFormat" value="Plain" />
++  </component>
++</module>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+--- /dev/null	(date 1714301200858)
++++ b/.idea/misc.xml	(date 1714301200858)
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="Black">
++    <option name="sdkName" value="Python 3.11 (FastAPI)" />
++  </component>
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (FastAPI)" project-jdk-type="Python SDK" />
++</project>
+\ No newline at end of file
+Index: .idea/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+--- /dev/null	(date 1714241861851)
++++ b/.idea/.gitignore	(date 1714241861851)
+@@ -0,0 +1,3 @@
++# Default ignored files
++/shelf/
++/workspace.xml
+Index: .idea/inspectionProfiles/profiles_settings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/inspectionProfiles/profiles_settings.xml b/.idea/inspectionProfiles/profiles_settings.xml
+new file mode 100644
+--- /dev/null	(date 1714241859795)
++++ b/.idea/inspectionProfiles/profiles_settings.xml	(date 1714241859795)
+@@ -0,0 +1,6 @@
++<component name="InspectionProjectProfileManager">
++  <settings>
++    <option name="USE_PROJECT_PROFILE" value="false" />
++    <version value="1.0" />
++  </settings>
++</component>
+\ No newline at end of file
+Index: loc.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/loc.py b/loc.py
+new file mode 100644
+--- /dev/null	(date 1714305028439)
++++ b/loc.py	(date 1714305028439)
+@@ -0,0 +1,136 @@
++# from locust import HttpUser, between, task
++#
++#
++# class ForexUser(HttpUser):
++#     wait_time = between(1, 5)
++#
++#     @task
++#     def get_news(self):
++#         self.client.get("/")
++#
++#     @task
++#     def filter_news(self):
++#         self.client.get("/?currency=USD&importance=1-2")
++
++import logging
++from fastapi import FastAPI, Query
++from datetime import datetime
++from bs4 import BeautifulSoup
++from typing import Optional
++import httpx
++import uvicorn
++
++app = FastAPI()
++
++FOREX_CALENDAR_URL = "https://www.forexfactory.com/calendar"
++HEADERS = {
++    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
++                  'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
++}
++
++cache = {}
++
++
++async def get_importance(row):
++    if row.find(class_='icon icon--ff-impact-red'):
++        return "Red"
++    elif row.find(class_='icon icon--ff-impact-yel'):
++        return "Yellow"
++    elif row.find(class_="icon icon--ff-impact-ora"):
++        return "Orange"
++    elif row.find(class_="icon icon--ff-impact-gra"):
++        return "Grey"
++
++
++async def fetch_news_list():
++    async with httpx.AsyncClient() as client:
++        response = await client.get(FOREX_CALENDAR_URL, headers=HEADERS)
++        soup = BeautifulSoup(response.content, features='html.parser')
++        news_rows = soup.find_all(class_='calendar__row')
++        result = []
++        prev_date_time = None
++        prev_date = None
++
++        if news_rows:
++            for row in news_rows:
++                title_element = row.find(class_='calendar__event-title')
++                title = title_element.get_text(strip=True) if title_element else None
++                if not title:
++                    continue
++
++                date_time_element = row.find(class_='calendar__cell calendar__time')
++                date_time_text = date_time_element.get_text(strip=True) if date_time_element else ""
++                if not date_time_text and prev_date_time:
++                    date_time_text = prev_date_time
++
++                prev_date_time = date_time_text
++
++                date_element = row.find(class_='calendar__cell calendar__date')
++                date_text = date_element.get_text(strip=True) if date_element else ""
++                if not date_text and prev_date:
++                    date_text = prev_date
++
++                prev_date = date_text
++
++                currency_element = row.find(class_='calendar__cell calendar__currency')
++                valuta = currency_element.get_text(strip=True) if currency_element else "No currency"
++
++                importance = await get_importance(row)
++                cur = datetime.now().day
++
++                numbers = [int(num) for num in date_text if num.isdigit()]
++                if numbers and int(''.join(map(str, numbers))) == cur:
++                    result.append({
++                        'Заголовок': title,
++                        'Время': date_time_text,
++                        'Дата': date_text,
++                        'Важность': importance,
++                        'Валюта': valuta,
++                    })
++
++            return result
++
++
++@app.get("/")
++async def get_news(currency: Optional[str] = Query(None),
++                   importance: Optional[str] = Query(None)):
++
++    current_time = datetime.now()
++
++    if 'news' in cache and (current_time - cache['timestamp']).seconds < 1800:
++        all_news = cache['news']
++    else:
++        all_news = await fetch_news_list()
++        cache['news'] = all_news
++        cache['timestamp'] = current_time
++
++        if currency:
++            currencies = currency.split('-')
++            all_news = [news
++                        for news in all_news
++                        if any(c.lower() in news['currency'].lower()
++                               for c in currencies)]
++
++        if importance:
++            importance_list = importance.split('-')
++            importance_levels = ["Red",
++                                 "Orange",
++                                 "Yellow",
++                                 "Grey"]
++
++            selected_levels = [
++                importance_levels[int(idx)]
++                for idx in importance_list]
++
++            all_news = [news
++                        for news in all_news
++                        if news['importance'] in selected_levels]
++    return all_news
++
++
++if __name__ == "__main__":
++    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
++    print(logging.info("Что-то"))
++
++
++
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/modules.xml b/.idea/modules.xml
+new file mode 100644
+--- /dev/null	(date 1714241859783)
++++ b/.idea/modules.xml	(date 1714241859783)
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/.idea/FastAPI.iml" filepath="$PROJECT_DIR$/.idea/FastAPI.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	(date 1714241859807)
++++ b/.idea/vcs.xml	(date 1714241859807)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
