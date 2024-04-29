@@ -12,7 +12,6 @@ HEADERS = {
                   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
 }
 cache = {}
-cur = datetime.now()
 
 
 async def get_event_importance(row):
@@ -60,6 +59,7 @@ async def get_news_list():
                     importance = await get_event_importance(row)
 
                     numbers = [int(num) for num in date_text if num.isdigit()]
+                    cur = datetime.now()
                     if numbers and int(''.join(map(str, numbers))) == cur.day:
                         d_m_y = datetime.today()
                         data_day_moth = d_m_y.strftime("%d %B %Y")
@@ -80,6 +80,7 @@ async def get_news_list():
 async def get_news(currency: Optional[str] = Query(None),
                    importance: Optional[str] = Query(None)):
 
+    cur = datetime.now()
     if 'news' in cache and 'timestamp' in cache and (cur - cache['timestamp']).seconds < 1800:
         all_news = cache['news']
     else:
