@@ -62,10 +62,12 @@ async def get_news_list():
 
                     numbers = [int(num) for num in date_text if num.isdigit()]
                     if numbers and int(''.join(map(str, numbers))) == cur.day:
+                        d_m_y = datetime.today()
+                        data_day_moth = d_m_y.strftime("%d %B %Y")
                         result.append({
                             'Заголовок': title,
                             'Время': date_time_text,
-                            'Дата': date_text,
+                            'Дата': data_day_moth,
                             'Важность': importance,
                             'Валюта': valuta,
                         })
