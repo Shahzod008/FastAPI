@@ -23,7 +23,7 @@
     pip install -r requirements.txt
     ```
 
-## Использование
+## Использование напряму
 
 1. Запустите сервер FastAPI:
 
@@ -31,14 +31,26 @@
     uvicorn main:app --reload
     ```
 
-2. Откройте веб-браузер и перейдите по адресу `http://localhost:8000`, для получения новостей.
+2. Откройте веб-браузер и перейдите по адресу `http://127.0.0.1:8000/`, для получения новостей.
 
 ## Эндпоинты
 
-- Получить все Forex новости. `http://localhost:8000/`
+- Получить все Forex новости. `http://127.0.0.1:8000/`
 - Параметры фильтрации:
-    - `currency`: Фильтровать новости по валюте. Пример `https://localhost:8000/?currency=USD` или `https://localhost:8000/?currency=USD-EUR` 
-    - `importance`: Фильтровать новости по уровню важности. Пример: `https://localhost:8000/?importance=0` или `https://localhost:8000/?importance=0-1`
+    - `currency`: Фильтровать новостей по валюте. Пример `http://127.0.0.1:8000/?currency=USD` или `http://127.0.0.1:8000/?currency=USD-EUR` 
+    - `importance`: Фильтровать новостей по уровню важности. Пример: `http://127.0.0.1:8000/?importance=0` или `http://127.0.0.1:8000/?importance=0-1`
+    - `currency-importance`: Фильтровать новостей по валюте и по уроню важности. Пример http://127.0.0.1:8000/?currency=USD-EUR&importance=2-3
+
+## Использование через Docker
+1. Создайте Docker контейнер с помощью команды
+    ```bach
+   docker build -t my-python-app .
+   ```
+2. Запустите контейнер с помощью команды 
+    ```bach
+   docker run -d -p 8000:8000 my-python-app
+    ```
+3. Откройте веб-браузер и перейдите по адресу `http://127.0.0.1:8000/`, для получения новостей
 
 ## Автор
 [Shahzod](https://github.com/Shahzod008)
