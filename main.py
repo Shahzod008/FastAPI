@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query
 from datetime import datetime
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from typing import Optional
 import uvicorn
 import httpx
@@ -14,7 +14,7 @@ HEADERS = {
 cache = {}
 
 
-def get_event_importance(row):
+def get_event_importance(row: Tag) -> str:
     if row.find(class_='icon icon--ff-impact-red'):
         return "Red"
     elif row.find(class_='icon icon--ff-impact-yel'):
@@ -25,7 +25,7 @@ def get_event_importance(row):
         return "Grey"
 
 
-def data_new(date_text):
+def data_new(date_text) -> str:
     index = next((i for i, c in enumerate(date_text) if c.isupper()), None)
     if index is not None:
         index = next((i for i, c in enumerate(date_text[index + 1:]) if c.isupper()), None)
