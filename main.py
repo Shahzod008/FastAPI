@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from datetime import datetime
 from bs4 import BeautifulSoup, Tag
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import uvicorn
 import httpx
 
@@ -13,7 +13,6 @@ HEADERS = {
 }
 cache = {}
 
-
 def get_event_importance(row: Tag) -> str:
     if row.find(class_='icon icon--ff-impact-red'):
         return "Red"
@@ -23,26 +22,24 @@ def get_event_importance(row: Tag) -> str:
         return "Orange"
     elif row.find(class_="icon icon--ff-impact-gra"):
         return "Grey"
-
+    return "Unknown"  # В случае, если не найдено совпадение
 
 def data_new(date_text: str) -> str:
-    index = next((i for i, c in enumerate(date_text) if c.isupper()), None)
-    if index is not None:
-        index = next((i for i, c in enumerate(date_text[index + 1:]) if c.isupper()), None)
+    try:
+        index = next((i for i, c in enumerate(date_text) if c.isupper()), None)
         if index is not None:
-            new_data = date_text[index + 1:]
-        else:
-            new_data = date_text
-    else:
-        new_data = date_text
+            index = next((i for i, c in enumerate(date_text[index + 1:]) if c.isupper()), None)
+            if index is not None:
+                return date_text[index + 1:]
+    except Exception as e:
+        print(f"Error processing date text: {e}")
+    return date_text  # Возвращаем оригинальный текст, если возникла ошибка
 
-    return new_data
-
-
-async def get_news_list():
-    async with httpx.AsyncClient() as client:
-        try:
+async def get_news_list() -> List[Dict[str, Any]]:
+    try:
+        async with httpx.AsyncClient() as client:
             response = await client.get(url=FOREX_FACTORY_URL, headers=HEADERS)
+            response.raise_for_status()  # Проверяем, что запрос успешен
             soup = BeautifulSoup(response.content, features='html.parser')
             news_rows = soup.find_all(class_='calendar__row')
             result = []
@@ -57,15 +54,11 @@ async def get_news_list():
                         continue
 
                     date_time_element = row.find(class_='calendar__cell calendar__time')
-                    date_time_text = date_time_element.get_text(strip=True) if date_time_element else None
-                    if not date_time_text and prev_date_time:
-                        date_time_text = prev_date_time
+                    date_time_text = date_time_element.get_text(strip=True) if date_time_element else prev_date_time
                     prev_date_time = date_time_text
 
                     date_element = row.find(class_='calendar__cell calendar__date')
-                    date_text = date_element.get_text(strip=True) if date_element else None
-                    if not date_text and prev_date:
-                        date_text = prev_date
+                    date_text = date_element.get_text(strip=True) if date_element else prev_date
                     prev_date = date_text
 
                     currency_element = row.find(class_='calendar__cell calendar__currency')
@@ -83,49 +76,49 @@ async def get_news_list():
                             'Валюта': valuta,
                         })
             return result
-        except httpx.HTTPError as e3:
-            print(e3)
-            return "Что то пошло не так"
-
+    except httpx.HTTPError as e:
+        print(f"HTTP error occurred: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    return []
 
 @app.get("/")
 async def get_news(currency: Optional[str] = Query(None),
-                   importance: Optional[str] = Query(None)):
+                   importance: Optional[str] = Query(None)) -> List[Dict[str, Any]]:
 
     cur = datetime.now()
     if 'news' in cache and 'timestamp' in cache and (cur - cache['timestamp']).seconds < 1800:
         all_news = cache['news']
     else:
         all_news = await get_news_list()
+        if not all_news:
+            raise HTTPException(status_code=500, detail="Не удалось получить новости.")
         cache['news'] = all_news
         cache['timestamp'] = cur
 
     filtered_news = all_news
 
-    if currency:
-        currencies = currency.split('-')
-        filtered_news = [news
-                         for news in filtered_news
-                         if any(c.lower() in news['Валюта'].lower()
-                                for c in currencies)]
+    try:
+        if currency:
+            currencies = currency.split('-')
+            filtered_news = [news for news in filtered_news
+                             if any(c.lower() in news.get('Валюта', '').lower() for c in currencies)]
 
-    if importance:
-        importance_list = importance.split('-')
-        importance_levels = ["Red",
-                             "Orange",
-                             "Yellow",
-                             "Grey"]
+        if importance:
+            importance_list = importance.split('-')
+            importance_levels = ["Red", "Orange", "Yellow", "Grey"]
 
-        selected_levels = [
-            importance_levels[int(idx)]
-            for idx in importance_list]
+            selected_levels = [
+                importance_levels[int(idx)] for idx in importance_list
+                if idx.isdigit() and int(idx) < len(importance_levels)
+            ]
 
-        filtered_news = [news
-                         for news in filtered_news
-                         if news['Важность'] in selected_levels]
+            filtered_news = [news for news in filtered_news if news.get('Важность') in selected_levels]
+    except ValueError as e:
+        print(f"Error processing request parameters: {e}")
+        raise HTTPException(status_code=400, detail="Неверный параметр запроса.")
 
     return filtered_news
 
-
 if __name__ == "__main__":
-    uvicorn.run(app="main:app", reload=True)
+    uvicorn.run(app="main:app", host="127.0.0.1", port=8000, reload=True)
